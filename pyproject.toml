@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opencv_keypoint"
+version = "0.0.1"
+authors = [
+  { name = "Ryuto Yoshida" },
+]
+description = "Unified Python interface for keypoint detection and matching using OpenCV-backed algorithms."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "numpy",
+  "opencv-contrib-python",
+  "opencv-utility @ git+https://github.com/ry-yoshida-private/OpenCVUtility.git",
+]
+
+[project.urls]
+Homepage = "https://github.com/ry-yoshida-private/OpenCVKeypoint"
+"Bug Tracker" = "https://github.com/ry-yoshida-private/OpenCVKeypoint/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+kp_detection = ["py.typed"]
+kp_matching = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test.py", "test_*.py", "*_test.py"]

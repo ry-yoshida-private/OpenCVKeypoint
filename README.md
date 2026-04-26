@@ -1,0 +1,102 @@
+# OpenCVKeypoint
+
+## Overview
+
+OpenCVKeypoint is a unified repository that combines:
+
+- `kp_detection`: keypoint detection interfaces and implementations
+- `kp_matching`: keypoint matching interfaces and implementations
+
+Both packages are provided under the same `src` layout so you can use detection and matching in a single project without managing separate repositories.
+
+For package/module-level details, see:
+
+- [`src/kp_detection/README.md`](src/kp_detection/README.md)
+- [`src/kp_matching/README.md`](src/kp_matching/README.md)
+
+## Repository Structure
+
+```text
+OpenCVKeypoint/
+├─ src/
+│  ├─ kp_detection/
+│  └─ kp_matching/
+├─ tests/
+├─ pyproject.toml
+├─ requirements.txt
+└─ README.md
+```
+
+## Installation
+
+From the repository root (the directory containing `pyproject.toml`):
+
+```bash
+pip install .
+```
+
+For development:
+
+```bash
+pip install -e .
+```
+
+To install only dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Python 3.10 or newer is required.
+
+## Example
+
+```python
+import cv2
+
+from kp_detection import KPDetectionMethod, KPDetectionResult
+from kp_matching import (
+    KPMatchCommonParameters,
+    KPMatchMethod,
+    KPMatchingParameters,
+    KPMatchingProcessor,
+    PairedDetectionResult,
+    RatioTestParameters,
+    FLANNParameters,
+)
+
+query_image = cv2.imread("query.png", cv2.IMREAD_GRAYSCALE)
+gallery_image = cv2.imread("gallery.png", cv2.IMREAD_GRAYSCALE)
+if query_image is None or gallery_image is None:
+    raise FileNotFoundError("query.png or gallery.png was not found")
+
+method = KPDetectionMethod.SIFT
+params = method.parameter_class(method=method)
+detector = method.detector_class(params=params)
+
+query_det_result: KPDetectionResult = detector.detect(query_image)
+gallery_det_result: KPDetectionResult = detector.detect(gallery_image)
+
+common_params = KPMatchCommonParameters(
+    method=KPMatchMethod.KNN,
+    is_cross_check_enabled=False,
+    knn=2,
+)
+ratio_test_params = RatioTestParameters(
+    is_enabled=True,
+    threshold=0.75,
+)
+flann_params = FLANNParameters(
+    checks=50,
+    trees=5,
+)
+matching_params = KPMatchingParameters(
+    common_params=common_params,
+    ratio_test_params=ratio_test_params,
+    flann_params=flann_params,
+)
+processor = KPMatchingProcessor(params=matching_params)
+
+paired: PairedDetectionResult = processor.run_pipeline(query_det_result, gallery_det_result)
+print(f"number of matches: {len(paired.match_result.matches)}")
+```
