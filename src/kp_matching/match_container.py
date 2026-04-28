@@ -3,7 +3,9 @@ import cv2
 import warnings
 import numpy as np
 from dataclasses import dataclass
-from typing import  Iterator
+from typing import Iterator
+
+KNNMatchGroup = tuple[cv2.DMatch, ...] | list[cv2.DMatch]
 
 @dataclass
 class MatchResult:
@@ -15,7 +17,7 @@ class MatchResult:
         matches (list[Union[cv2.DMatch, list[cv2.DMatch]]]): List of keypoint matches.
             Can contain single DMatch or a list of kNN matches (for ratio test).
     """
-    matches: list[cv2.DMatch] | list[tuple[cv2.DMatch, ...]]
+    matches: list[cv2.DMatch] | list[KNNMatchGroup]
 
     def __getitem__(
         self, 
@@ -34,7 +36,7 @@ class MatchResult:
         cv2.DMatch: The match at the specified index.
         """
         m = self.matches[index]
-        if isinstance(m, tuple):
+        if isinstance(m, (tuple, list)):
             return m[0]
         return m
     
@@ -47,7 +49,7 @@ class MatchResult:
         Iterator[cv2.DMatch]: The iterator over the matches.
         """
         for m in self.matches:
-            if isinstance(m, tuple):
+            if isinstance(m, (tuple, list)):
                 yield m[0]
             else:
                 yield m
@@ -68,22 +70,23 @@ class MatchResult:
         ---------
         MatchResult: Filtered matches after ratio test.
         """
-        knn_matches = [m for m in self.matches if isinstance(m, tuple)]
-        if not knn_matches:
-            warnings.warn("Ratio test skipped: No kNN matches (k=2) found.")
+        knn_matches = [m for m in self.matches if isinstance(m, (tuple, list))]
+        valid_knn_matches = [m for m in knn_matches if len(m) >= 2]
+        if not valid_knn_matches:
+            warnings.warn("Ratio test skipped: No valid kNN pairs (k>=2) found.")
             return MatchResult(matches=self.matches)
 
-        distances = np.array([(m[0].distance, m[1].distance) for m in knn_matches])
+        distances = np.array([(m[0].distance, m[1].distance) for m in valid_knn_matches])
         ratios = distances[:, 0] / (distances[:, 1] + np.finfo(float).eps)
         indices = np.where(ratios < threshold)[0]
-        good_matches = [knn_matches[i] for i in indices]
+        good_matches: list[KNNMatchGroup] = [valid_knn_matches[i] for i in indices]
         return MatchResult(matches=good_matches)
 
     def sort_by_distance(self) -> None:
         """
         Sort the matches by distance.
         """
-        nearest_matches: list[cv2.DMatch] = [m for match in self.matches if (m := match[0] if isinstance(match, tuple) else match)]
+        nearest_matches: list[cv2.DMatch] = [m for match in self.matches if (m := match[0] if isinstance(match, (tuple, list)) else match)]
         sort_indices = np.argsort([m.distance for m in nearest_matches])
         self.matches = [self.matches[i] for i in sort_indices]
 

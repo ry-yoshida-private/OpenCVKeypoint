@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from typing import cast
 
 from opencv_utility import OpenCVOutlierFilteringFlag
-from .match_container import MatchResult
+from .match_container import KNNMatchGroup, MatchResult
 from .utils import GeometricConstraint
-from ..kp_detection import KPDetectionResult
+from kp_detection import KPDetectionResult
 
 
 @dataclass
@@ -124,10 +124,7 @@ class PairedDetectionResult:
         inlier_indices: list[int] = [int(i) for i in np.flatnonzero(mask.ravel() == 1)]
         raw_matches = self.match_result.matches
         filtered = [raw_matches[i] for i in inlier_indices]
-        homogenous_matches = cast(
-            list[cv2.DMatch] | list[tuple[cv2.DMatch, ...]],
-            filtered,
-        )
+        homogenous_matches = cast(list[cv2.DMatch] | list[KNNMatchGroup], filtered)
         return self.__class__(
             query_det_result=self.query_det_result,
             gallery_det_result=self.gallery_det_result,

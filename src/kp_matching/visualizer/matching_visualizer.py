@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
+from ..match_container import KNNMatchGroup
 from .flags import DrawMatchFlags
 
 
@@ -25,7 +26,7 @@ class MatchingVisualizer:
         kps1: tuple[cv2.KeyPoint, ...] | np.ndarray, 
         img2: np.ndarray, 
         kps2: tuple[cv2.KeyPoint, ...] | np.ndarray, 
-        matches: list[cv2.DMatch] | list[tuple[cv2.DMatch, ...]]
+        matches: list[cv2.DMatch] | list[KNNMatchGroup]
         ) -> np.ndarray:
         """
         Draws matches between keypoints in two images.
@@ -47,6 +48,6 @@ class MatchingVisualizer:
         Returns:
             ndarray: Image with matches drawn.
         """
-        m = [m for match in matches if (m := match[0] if isinstance(match, tuple) else match)]
+        m = [m for match in matches if (m := match[0] if isinstance(match, (tuple, list)) else match)]
         img: np.ndarray = cv2.drawMatches(img1, kps1, img2, kps2, m, None, flags=self.flags.to_cv2) # type: ignore
         return img # type: ignore

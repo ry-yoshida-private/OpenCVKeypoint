@@ -2,7 +2,7 @@ import warnings
 from dataclasses import dataclass
 
 import cv2
-from ...kp_detection import KPDetectionMethod
+from kp_detection.method import KPDetectionMethod
 from ..method import KPMatchMethod
 
 @dataclass
