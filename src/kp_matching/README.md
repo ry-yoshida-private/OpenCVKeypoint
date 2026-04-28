@@ -9,6 +9,7 @@ This module provides keypoint matching functionality for computer vision applica
 
 | Component | Description |
 | --------- | ----------- |
+| [`parameter.py`](./parameter.py) | Parameter integration and matcher construction, including FLANN setting validation |
 | [`processor.py`](./processor.py) | Main processor class for keypoint matching operations |
 | [`match_container.py`](./match_container.py) | Container class for managing and filtering keypoint matches |
 | [`matching_visualizer.py`](./matching_visualizer.py) | Visualization utilities for displaying matches between images |

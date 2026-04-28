@@ -56,13 +56,15 @@ import cv2
 
 from kp_detection import KPDetectionMethod, KPDetectionResult
 from kp_matching import (
+    DrawMatchFlags,
+    FLANNParameters,
     KPMatchCommonParameters,
     KPMatchMethod,
     KPMatchingParameters,
     KPMatchingProcessor,
+    MatchingVisualizer,
     PairedDetectionResult,
     RatioTestParameters,
-    FLANNParameters,
 )
 
 query_image = cv2.imread("query.png", cv2.IMREAD_GRAYSCALE)
@@ -70,14 +72,15 @@ gallery_image = cv2.imread("gallery.png", cv2.IMREAD_GRAYSCALE)
 if query_image is None or gallery_image is None:
     raise FileNotFoundError("query.png or gallery.png was not found")
 
-method = KPDetectionMethod.SIFT
-params = method.parameter_class(method=method)
-detector = method.detector_class(params=params)
+detection_method = KPDetectionMethod.SIFT
+params = detection_method.parameter_class(method=detection_method)
+detector = detection_method.detector_class(params=params)
 
 query_det_result: KPDetectionResult = detector.detect(query_image)
 gallery_det_result: KPDetectionResult = detector.detect(gallery_image)
 
 common_params = KPMatchCommonParameters(
+    detection_method=detection_method,
     method=KPMatchMethod.KNN,
     is_cross_check_enabled=False,
     knn=2,
@@ -99,4 +102,18 @@ processor = KPMatchingProcessor(params=matching_params)
 
 paired: PairedDetectionResult = processor.run_pipeline(query_det_result, gallery_det_result)
 print(f"number of matches: {len(paired.match_result.matches)}")
+
+# Visualize matched keypoints and save as an image.
+visualizer = MatchingVisualizer(flags=DrawMatchFlags.NOT_DRAW_SINGLE_POINTS)
+matched_image = visualizer.draw_matches(
+    query_image,
+    paired.query_det_result.keypoints,
+    gallery_image,
+    paired.gallery_det_result.keypoints,
+    paired.match_result.matches,
+)
+
+output_path = "matched_result.jpg"
+cv2.imwrite(output_path, matched_image)
+print(f"saved visualization: {output_path}")
 ```

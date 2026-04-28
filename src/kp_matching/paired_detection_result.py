@@ -5,11 +5,12 @@ import warnings
 import numpy as np
 from dataclasses import dataclass
 from typing import cast
-from kp_detection import KPDetectionResult
 
 from opencv_utility import OpenCVOutlierFilteringFlag
 from .match_container import MatchResult
 from .utils import GeometricConstraint
+from ..kp_detection import KPDetectionResult
+
 
 @dataclass
 class PairedDetectionResult:

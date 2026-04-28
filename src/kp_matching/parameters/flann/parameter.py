@@ -1,6 +1,7 @@
 import cv2
 from dataclasses import dataclass
 from typing import Any
+
 from .index_type import FLANNIndexType
 
 @dataclass

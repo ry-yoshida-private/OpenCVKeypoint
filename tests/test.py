@@ -49,8 +49,20 @@ def _random_detection(
 
 
 class TestKPMatchingRandomDescriptors(unittest.TestCase):
+    @staticmethod
+    def _default_matching_params() -> KPMatchingParameters:
+        return KPMatchingParameters(
+            common_params=KPMatchCommonParameters(
+                detection_method=KPDetectionMethod.SIFT,
+                method=KPMatchMethod.KNN,
+                knn=2,
+            ),
+            ratio_test_params=RatioTestParameters(),
+            flann_params=FLANNParameters(),
+        )
+
     def test_knn_match_returns_match_result(self) -> None:
-        params = KPMatchingParameters()
+        params = self._default_matching_params()
         proc = KPMatchingProcessor(params)
         desc1, desc2 = _random_descriptors(20, 32, seed=0)
         result = proc.match(desc1, desc2)
@@ -62,6 +74,7 @@ class TestKPMatchingRandomDescriptors(unittest.TestCase):
     def test_bf_match_without_ratio_test(self) -> None:
         params = KPMatchingParameters(
             common_params=KPMatchCommonParameters(
+                detection_method=KPDetectionMethod.SIFT,
                 method=KPMatchMethod.BF,
                 knn=1,
             ),
@@ -74,7 +87,7 @@ class TestKPMatchingRandomDescriptors(unittest.TestCase):
         self.assertGreaterEqual(len(result), 0)
 
     def test_run_pipeline_with_synthetic_detections(self) -> None:
-        params = KPMatchingParameters()
+        params = self._default_matching_params()
         proc = KPMatchingProcessor(params)
         query, gallery = _random_detection(12, 32, seed=2, gallery_scale=0.3)
         paired = proc.run_pipeline(query, gallery)
@@ -86,7 +99,7 @@ class TestKPMatchingRandomDescriptors(unittest.TestCase):
             self.assertEqual(gm.shape[0], len(paired.match_result))
 
     def test_run_pipeline_raises_without_descriptors(self) -> None:
-        params = KPMatchingParameters()
+        params = self._default_matching_params()
         proc = KPMatchingProcessor(params)
         rng = np.random.default_rng(3)
         coords = rng.uniform(0.0, 100.0, size=(5, 2)).astype(np.float32)

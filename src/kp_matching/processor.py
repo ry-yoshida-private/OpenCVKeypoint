@@ -3,7 +3,10 @@ import numpy as np
 from .paired_detection_result import PairedDetectionResult
 from .match_container import MatchResult
 from .parameter import KPMatchingParameters
-from kp_detection import KPDetectionResult
+try:
+    from kp_detection import KPDetectionResult
+except ModuleNotFoundError:
+    from src.kp_detection import KPDetectionResult
 
 
 class KPMatchingProcessor:
