@@ -70,16 +70,23 @@ class MatchResult:
         ---------
         MatchResult: Filtered matches after ratio test.
         """
-        knn_matches = [m for m in self.matches if isinstance(m, (tuple, list))]
-        valid_knn_matches = [m for m in knn_matches if len(m) >= 2]
-        if not valid_knn_matches:
+        knn_matches: list[KNNMatchGroup] = []
+        for match in self.matches:
+            if not isinstance(match, (tuple, list)):
+                continue
+            if len(match) < 2:
+                warnings.warn("Ratio test skipped: Found kNN match with k<2.")
+                return MatchResult(matches=self.matches)
+            knn_matches.append(match)
+
+        if not knn_matches:
             warnings.warn("Ratio test skipped: No valid kNN pairs (k>=2) found.")
             return MatchResult(matches=self.matches)
 
-        distances = np.array([(m[0].distance, m[1].distance) for m in valid_knn_matches])
+        distances = np.array([(m[0].distance, m[1].distance) for m in knn_matches])
         ratios = distances[:, 0] / (distances[:, 1] + np.finfo(float).eps)
         indices = np.where(ratios < threshold)[0]
-        good_matches: list[KNNMatchGroup] = [valid_knn_matches[i] for i in indices]
+        good_matches: list[KNNMatchGroup] = [knn_matches[i] for i in indices]
         return MatchResult(matches=good_matches)
 
     def sort_by_distance(self) -> None:
