@@ -11,6 +11,8 @@ class RatioTestParameters:
         Whether to use ratio test.
     threshold: float
         The threshold for ratio test.
+        - Closer to 0.0: Stricter (fewer, higher quality matches).
+        - Closer to 1.0: Looser (more matches, including potential false positives).
     """
     is_enabled: bool = True
     threshold: float = 0.75
